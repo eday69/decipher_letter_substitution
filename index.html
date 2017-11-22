@@ -1,0 +1,172 @@
+<html>
+<head>
+  <title>Book REST api test</title>
+  <link rel="stylesheet" type="text/css" href="css/layout.css?version=51">
+</head>
+<body>
+
+<script type="text/javascript" src="js/jquery-3.2.1.js"></script>
+<script type="text/javascript">
+
+
+  function putFiles() {
+    cleanfiles();
+    var form = new FormData();
+    var encryptedfile = document.getElementById("encrypted").files[0];
+    var plainfile = document.getElementById("plain").files[0];
+    form.append("encryptedfile", encryptedfile, encryptedfile.name);
+    form.append("plainfile", plainfile, plainfile.name);
+    $.ajax({
+      // call api with isbn
+       url: 'http://localhost:3000/api/cypher/',
+       processData: false,
+       contentType: false,
+       dataType: 'json',
+       mimeType: "multipart/form-data",
+       async: false,
+       cache: false,
+       data: form,
+       method: 'POST',
+//       type: 'POST',
+       success: function(data) {
+         console.log('Posted it, and got :'+data);
+         console.log('Data Key :'+data.Key);
+         $('#showresult').css({"visibility" : "visible"});
+         document.getElementById("resultkey").value=data.Key;
+         var newfile=data.Key+'.txt';
+         getFiles(newfile, encryptedfile);
+        },
+       error: function(xhr, statusText, errorThrown) {
+           if (xhr.status == 404) {
+             // Book was not found, display text message
+             document.getElementById("txtStatus").innerText = xhr.status+' Book was not found !!';
+           }
+       }
+    });
+  }
+
+  function readSingleFile(e) {
+    var file = e.target.files[0];
+    if (!file) {
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var contents = e.target.result;
+      displayContents(contents);
+    };
+    reader.readAsText(file);
+  }
+
+  function displayContents(contents) {
+    var element = document.getElementById('undecipheredtext');
+    element.textContent = contents;
+    cleanfiles();
+}
+
+  function getFiles(decipheredfile, encryptedfile) {
+//    decipheredfile='zhimneyxwvutsrqpolkjgfdcba.txt';
+//    alert('Ok');
+    $.ajax({
+      // call api with isbn
+       url: 'http://localhost:3000/api/cypher/'+decipheredfile,
+       contentType: "application/x-www-form-urlencoded",
+//       data: {"deciferedfile": "zhimneyxwvutsrqpolkjgfdcba.txt"},
+//       dataType: 'json',
+       cache: false,
+       method: 'GET',
+       success: function(data) {
+         document.getElementById("decipheredtext").innerText = data;
+
+       },
+       error: function(xhr, statusText, errorThrown) {
+           if (xhr.status == 404) {
+             // Book was not found, display text message
+             document.getElementById("txtStatus").innerText = xhr.status+' Book was not found !!';
+           }
+       }
+    });
+  }
+
+function cleanfiles() {
+  $('#showresult').css({"visibility" : "hidden"});
+  document.getElementById("decipheredtext").innerText = 'Deciphered Text';
+}
+
+  document.addEventListener("DOMContentLoaded", function(){
+    $('#showresult').css({"visibility" : "hidden"});
+//    document.getElementById('showresult').style.hidden=true;
+    document.getElementById('encrypted')
+        .addEventListener('change', readSingleFile, false);
+  });
+
+</script>
+
+<div style="padding:2px;">
+  <h2>Ciphered file decrypter REST Api</h2>
+<!--    <form id='fileInfo'> -->
+
+      <div class="divTable" style="width: 100%;border: 1px solid #000;" >
+      <div id="popUpWin" class="popUpWindow"></div>
+      <div class="divTableBody">
+        <div class="divTableRow">
+          <div class="divTableCell" style="width:10%;"><label class='etiqueta'>Encrypted File</label></div>
+          <div class="divTableCell">
+            <div class="divTable">
+              <div class="divTableRow">
+                <div class="divTableCell">
+                  <input id='encrypted' name='encrypted' type='file'>
+                  <button class='button' onclick='putFiles();'>DECIPHER !</button>
+                </div>
+                <div class="divTableCell">
+                  &nbsp;
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="divTableRow">
+          <div class="divTableCell" style="width:10%;"><label class='etiqueta'>Plain File</label></div>
+          <div class="divTableCell">
+            <div class="divTable">
+              <div class="divTableRow">
+                <div class="divTableCell">
+                  <input id='plain' name='plain' type='file' >
+                </div>
+                <div class="divTableCell">
+                  <div id='showresult'>
+                    <label class='etiqueta'>Result Key: </label>
+                    <input id="resultkey" type='text' size="30"  placeholder="Key Result">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div class="divTableRow">
+          <div class="divTableCell" style="width:10%;"><label class='etiqueta'>Result</label></div>
+          <div class="divTableCell">
+            <div class="divTable" style="width: 100%;border: 1px solid #000;" >
+              <div class="divTableRow">
+                <div class="divTableCell">
+                  <textarea id="undecipheredtext" rows = "30" cols = "80">Original Text</textarea>
+                </div>
+                <div class="divTableCell">
+                  <textarea id="decipheredtext" rows = "30" cols = "80">Deciphered Text</textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+<!--   </form> -->
+</div>
+
+</body>
+</html>
